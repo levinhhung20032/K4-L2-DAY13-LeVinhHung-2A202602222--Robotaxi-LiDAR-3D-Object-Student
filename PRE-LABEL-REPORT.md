@@ -19,21 +19,21 @@
 ---
 
 ## 3. Nhật ký Kiểm tra và Sửa Pre-Label (Source Job)
-- **Job ID CVAT:** [Điền ID công việc trên CVAT của bạn]
+- **Job ID CVAT:** #21877 - 21906
 - **Nhận xét tổng quan về Pre-label từ Model:** 
   - Mô hình PointPillars tạo các hộp gợi ý khá tốt cho các xe ở cự ly gần và trung bình. Tuy nhiên, tại các vùng điểm LiDAR thưa hoặc khuất, kích thước và góc xoay (orientation) chưa hoàn toàn chính xác, cần tinh chỉnh thủ công để khớp với point cloud và ảnh camera.
+  - Mô hình tạo khá nhiều box thừa và gán nhãn là pedestrian khi point cloud tập trung ở khu vực cây cối.
 - **Chi tiết các lỗi đã phát hiện và sửa đổi:**
-  - **Class Car / Vehicle:** Điều chỉnh lại góc quay hướng (orientation) và kéo giãn/thu hẹp kích thước bounding box cho sát thực tế.
-  - **Class Pedestrian / Cyclist / Others:** Kiểm tra và căn chỉnh lại các đối tượng nhỏ, người đi bộ ở tầm nhìn xa.
+  - **Class Car / Vehicle:** Chủ yếu là chỉnh sửa kích thước cho sát mép vật thể, dự đoán phần bị che lấp của vật thể.
+  - **Class Pedestrian / Cyclist / Others:** Mô hình gắn người và xe riêng khi gặp người điều khiển xe máy, điều chỉnh lại thành 1 box duy nhất, mô hình thường xuyên chọn yaw sai bất kể xa gần, đặc biệt nghiêm trọng đối với object xe máy có trở hàng cồng kềnh, xe đi ngược chiều.
   - **Hộp thiếu (False Negative):** Đã bổ sung thủ công các đối tượng bị model bỏ sót.
   - **Hộp thừa (False Positive):** Đã xóa bỏ các hộp nhiễu do điểm phản xạ mặt đường tạo ra.
 
 ---
 
 ## 4. Kết quả Review / QC Bài của Thành viên khác
-- **Job QC được giao:** [Điền ID job được phân công review hoặc ghi "Không áp dụng do làm độc lập"]
+- **Job QC được giao:** Chưa được phân công
 - **Các loại lỗi ghi nhận trên bài của tác giả (nếu có):**
-  - Không có (thực hiện theo hình thức cá nhân/đơn lẻ).
 
 ---
 
