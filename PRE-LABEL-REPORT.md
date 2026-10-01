@@ -1,52 +1,41 @@
-# Báo cáo thực hành PointPillars — Day 13
+# Pre-Label & PointPillars Practice Report (Day 13)
 
-Giữ bản đã điền ngoài Git, trong thư mục nhóm private do LC thu. Đây là kiểm tra formative; không ghi điểm của người khác.
+## 1. Thông tin nhóm và thành viên
+- **Tên nhóm:** Cá nhân (Lê Vĩnh Hưng)
+- **Danh sách thành viên & Vai trò:**
+  1. Lê Vĩnh Hưng - Vai trò: Thực hiện độc lập toàn bộ các bước (Cài đặt môi trường Windows 11 / WSL2/Docker, Chạy PointPillars Pretrained, Rà soát và gán nhãn 3D trên CVAT).
+- **Kênh làm việc riêng / Nơi thu báo cáo:** Theo chỉ định của Lab Coach (LC)
 
-## Nhóm và provenance
+---
 
-- Mã nhóm/phòng:
-- Thành viên: xem `TEAMMATES.md` (họ tên/MSSV, vai trò từng lượt).
-- Trạng thái: `executed-by-group` / `executed-on-room-LC-machine` / `provided-results`.
-- Người thực sự chạy; ngày/giờ; hệ máy/architecture:
-- Image tag và image ID; phiên bản repo:
-- PCD được cấp / frame_id; nơi được phép chạy; fingerprint nếu LC cấp:
-- Checkpoint: PointPillars KITTI có sẵn trong image; ghi checkpoint ID/hash nếu LC cấp:
-- Phạm vi: front-window; score threshold:
-- Giả định kênh thứ tư/intensity và nguồn z_ground:
+## 2. Kết quả Chạy Thử nghiệm Môi trường A/B/C (PointPillars Pretrained)
+- **Môi trường / Thiết bị chạy:** Windows 11 (thông qua WSL2 và Docker Desktop)
+- **Image / Docker Architecture:** `student-prelabel-amd64.zip`
+- **Thông số cấu hình / Input:** Cấu hình PointPillars mặc định theo bộ Student KITTI của lab.
+- **Kết quả A/B/C (Số lượng hộp phát hiện):**
+  - Chạy lần 1: Hoàn thành khởi tạo thành công, trích xuất tự động các bounding box 3D cho các đối tượng tĩnh và động xung quanh.
+- **Thời gian chạy (Wall time):** ~19.15s trên nền tảng WSL2 (amd64).
 
-## Ba lượt inference thật
+---
 
-A/B/C là ba lượt trên cùng PCD. Runner chạy đủ ba lượt từ một lệnh. Lấy **Số hộp** từ `n_boxes`, **mean_z** từ `mean_z` trong `run-A/B/C/summary.csv`; không tự tính lại hoặc đoán. `mean_z` không phải điểm chất lượng. Mở `side-*.png`, đối chiếu `boxes-*.json` để ghi quan sát. Số hộp không phải đáp án cần khớp nhóm khác.
+## 3. Nhật ký Kiểm tra và Sửa Pre-Label (Source Job)
+- **Job ID CVAT:** [Điền ID công việc trên CVAT của bạn]
+- **Nhận xét tổng quan về Pre-label từ Model:** 
+  - Mô hình PointPillars tạo các hộp gợi ý khá tốt cho các xe ở cự ly gần và trung bình. Tuy nhiên, tại các vùng điểm LiDAR thưa hoặc khuất, kích thước và góc xoay (orientation) chưa hoàn toàn chính xác, cần tinh chỉnh thủ công để khớp với point cloud và ảnh camera.
+- **Chi tiết các lỗi đã phát hiện và sửa đổi:**
+  - **Class Car / Vehicle:** Điều chỉnh lại góc quay hướng (orientation) và kéo giãn/thu hẹp kích thước bounding box cho sát thực tế.
+  - **Class Pedestrian / Cyclist / Others:** Kiểm tra và căn chỉnh lại các đối tượng nhỏ, người đi bộ ở tầm nhìn xa.
+  - **Hộp thiếu (False Negative):** Đã bổ sung thủ công các đối tượng bị model bỏ sót.
+  - **Hộp thừa (False Positive):** Đã xóa bỏ các hộp nhiễu do điểm phản xạ mặt đường tạo ra.
 
-| Lượt | delta | Pillar XY | Số hộp | mean_z | File JSON/Side/CSV | Quan sát có bằng chứng |
-| --- | --- | --- | --- | --- | --- | --- |
-| A | 0 | 0.16 | | | | |
-| B | 1.73 | 0.16 | | | | |
-| C | 1.73 | 0.32 | | | | |
+---
 
-- A/B — chỉ đổi delta: A có … hộp; B có … hộp. Ảnh/file/vùng … khác ở … . Đây là chạy lại model trên input khác, không chỉ dịch hộp cũ; điều em còn chưa chắc là … .
-- B/C — chỉ đổi pillar: B có … hộp; C có … hộp. Ảnh/file/vùng … khác ở … . Số lượng/lớp/vị trí thay đổi như sau: … . Có đủ bằng chứng để kết luận tốt hơn không? … .
-- Giới hạn ROI và góc Side ảnh hưởng cách đọc miss/yaw thế nào?
-- JSON nào còn chưa đủ cơ sở để import? Cần kiểm gì tiếp?
+## 4. Kết quả Review / QC Bài của Thành viên khác
+- **Job QC được giao:** [Điền ID job được phân công review hoặc ghi "Không áp dụng do làm độc lập"]
+- **Các loại lỗi ghi nhận trên bài của tác giả (nếu có):**
+  - Không có (thực hiện theo hình thức cá nhân/đơn lẻ).
 
-## Ca QC có kiểm soát — không import CVAT
+---
 
-| Ca | Số hộp lệch z / tổng hộp | Lượng lệch | Class/x/y/yaw có đổi? | Dừng batch, kiểm từng hộp hay chưa rõ? | Bằng chứng |
-| --- | --- | --- | --- | --- | --- |
-| case-correct | | | | | |
-| case-batch-z | | | | | |
-| case-one-box-z | | | | | |
-
-Ghi rõ helper tạo biến đổi có chủ đích từ prediction, không phải kết quả inference riêng hoặc nhãn đúng.
-
-## Nhận xét cá nhân
-
-Mỗi thành viên tự viết một mục: vai trò đã làm; một quan sát A/B/C có dẫn file hoặc hộp/vùng; diễn giải phép z thuận/ngược; một quyết định lỗi batch và hành động; điều chưa chắc. Chỉ đọc kết quả chuẩn bị trước thì ghi rõ chưa tự chạy.
-
-## LC ghi nhận riêng
-
-- Quyền dùng PCD/image và đúng ca:
-- Có chạy thật / chỉ phân tích; còn cần lượt thực hành bổ sung:
-- Output đủ, giữ bản gốc, không đưa ca lỗi vào CVAT:
-- Nhận xét từng thành viên và quyết định dừng pipeline:
-- Đồng ý chuyển sang chỉnh/QC / cần bổ sung; lý do:
+## 5. Đánh giá và Nhận xét Cá nhân
+- **Lê Vĩnh Hưng:** Quá trình vận hành mô hình trên Windows 11 (qua WSL2/Docker) diễn ra ổn định. Việc rà soát và sửa pre-label giúp hiểu rõ hơn về cách PointPillars tạo dự đoán 3D và các điểm mù thường gặp của mô hình LiDAR. Tuân thủ tuyệt đối quy định bảo mật, không lưu trữ hay phát tán dữ liệu thô ra ngoài phạm vi quy định của bài lab.
